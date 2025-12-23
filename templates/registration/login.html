@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Login</h4>
+            </div>
+            <div class="card-body">
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" id="{{ form.username.id_for_label }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" id="{{ form.password.id_for_label }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Login</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <p>Don't have an account?</p>
+                    <a href="{% url 'register_farmer' %}" class="btn btn-outline-success btn-sm">Register as Farmer</a>
+                    <a href="{% url 'register_company' %}" class="btn btn-outline-primary btn-sm">Register as Company</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

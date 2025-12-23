@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-success fw-bold">Welcome to AgroConnect</h1>
+        <p class="lead">
+            Connecting farmers and companies for agricultural waste trading
+        </p>
+    </div>
+
+    <!-- If user NOT logged in -->
+    {% if not user.is_authenticated %}
+    <div class="row justify-content-center">
+        <div class="col-md-5 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">For Farmers</h5>
+                    <p class="card-text">
+                        Sell your agricultural waste and earn extra income
+                    </p>
+                    <a href="{% url 'register_farmer' %}" class="btn btn-success">
+                        Register as Farmer
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">For Companies</h5>
+                    <p class="card-text">
+                        Buy quality agricultural waste for your business needs
+                    </p>
+                    <a href="{% url 'register_company' %}" class="btn btn-primary">
+                        Register as Company
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- If user IS logged in -->
+    <div class="text-center">
+        <h4 class="mb-3">Go to your dashboard</h4>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-success btn-lg">
+            Open Dashboard
+        </a>
+    </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

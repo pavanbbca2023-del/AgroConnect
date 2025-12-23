@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Place Order - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>Place Order</h4>
+                <p class="mb-0 text-muted">Order {{ waste_product.get_crop_name_display }} from {{ waste_product.farmer.user_profile.user.get_full_name|default:waste_product.farmer.user_profile.user.username }}</p>
+            </div>
+            <div class="card-body">
+                <!-- Product Summary -->
+                <div class="row mb-4 p-3 bg-light rounded">
+                    <div class="col-md-6">
+                        <h6>Product Details</h6>
+                        <p><strong>Type:</strong> {{ waste_product.get_crop_name_display }}</p>
+                        <p><strong>Available:</strong> {{ waste_product.quantity }} tons</p>
+                        <p><strong>Price:</strong> ₹{{ waste_product.price_per_ton }} per ton</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Farmer Details</h6>
+                        <p><strong>Name:</strong> {{ waste_product.farmer.user_profile.user.get_full_name|default:waste_product.farmer.user_profile.user.username }}</p>
+                        <p><strong>Farm Size:</strong> {{ waste_product.farmer.farm_size }} acres</p>
+                        <p><strong>Contact:</strong> {{ waste_product.farmer.user_profile.phone }}</p>
+                    </div>
+                </div>
+                
+                <!-- Order Form -->
+                <form method="post" id="orderForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.quantity_ordered.id_for_label }}" class="form-label">{{ form.quantity_ordered.label }}</label>
+                        {{ form.quantity_ordered }}
+                        <div class="form-text">Maximum available: {{ waste_product.quantity }} tons</div>
+                        {% if form.quantity_ordered.errors %}
+                            <div class="text-danger small">{{ form.quantity_ordered.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small">{{ form.notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Price Calculator -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6>Order Summary</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p>Quantity: <span id="orderQuantity">0</span> tons</p>
+                                    <p>Price per ton: ₹{{ waste_product.price_per_ton }}</p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <p class="fs-5"><strong>Total: ₹<span id="totalPrice">0</span></strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'waste_detail' waste_product.id %}" class="btn btn-secondary">← Back to Product</a>
+                        <button type="submit" class="btn btn-success">Place Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6>📋 Order Process</h6>
+            </div>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li>Submit your order with desired quantity</li>
+                    <li>Farmer will review and accept/reject the order</li>
+                    <li>If accepted, you'll receive farmer contact details</li>
+                    <li>Coordinate pickup/delivery directly with farmer</li>
+                    <li>Complete payment as agreed with farmer</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('{{ form.quantity_ordered.id_for_label }}');
+    const pricePerTon = {{ waste_product.price_per_ton }};
+    
+    function updatePrice() {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const total = quantity * pricePerTon;
+        
+        document.getElementById('orderQuantity').textContent = quantity;
+        document.getElementById('totalPrice').textContent = total.toFixed(2);
+    }
+    
+    quantityInput.addEventListener('input', updatePrice);
+    updatePrice(); // Initial calculation
+});
+</script>
+{% endblock %}

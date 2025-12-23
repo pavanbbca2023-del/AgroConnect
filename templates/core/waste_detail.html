@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.get_crop_name_display }} - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>{{ object.get_crop_name_display }}</h4>
+                <p class="mb-0 text-muted">Listed by {{ object.farmer.user_profile.user.get_full_name|default:object.farmer.user_profile.user.username }}</p>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Quantity Available</h6>
+                        <p class="text-success fs-5">{{ object.quantity }} tons</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Price per Ton</h6>
+                        <p class="text-primary fs-5">₹{{ object.price_per_ton }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Total Value</h6>
+                        <p class="text-dark fs-5"><strong>₹{{ object.total_value }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Status</h6>
+                        <span class="badge bg-{% if object.status == 'available' %}success{% elif object.status == 'reserved' %}warning{% else %}secondary{% endif %} fs-6">
+                            {{ object.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6>Description</h6>
+                <p>{{ object.description }}</p>
+                
+                <hr>
+                
+                <div class="row text-muted">
+                    <div class="col-md-6">
+                        <small>Listed on: {{ object.created_at|date:"F d, Y" }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <small>Last updated: {{ object.updated_at|date:"F d, Y" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6>Farmer Information</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ object.farmer.user_profile.user.get_full_name|default:object.farmer.user_profile.user.username }}</p>
+                <p><strong>Farm Size:</strong> {{ object.farmer.farm_size }} acres</p>
+                <p><strong>Contact:</strong> {{ object.farmer.user_profile.phone }}</p>
+                <p><strong>Location:</strong> {{ object.farmer.user_profile.address|truncatewords:10 }}</p>
+            </div>
+        </div>
+        
+        {% if user.is_authenticated and user.userprofile.role == 'company' and object.status == 'available' %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>Place Order</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Interested in purchasing this waste product?</p>
+                <div class="d-grid">
+                    <a href="{% url 'place_order' object.id %}" class="btn btn-success">Place Order</a>
+                </div>
+            </div>
+        </div>
+        {% elif user.is_authenticated and user.userprofile.role == 'company' and object.status != 'available' %}
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <p class="text-muted">This product is currently {{ object.get_status_display|lower }} and not available for new orders.</p>
+            </div>
+        </div>
+        {% elif not user.is_authenticated %}
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <p class="text-muted">Please <a href="{% url 'login' %}">login</a> as a company to place orders.</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <a href="{% url 'waste_list' %}" class="btn btn-outline-secondary">← Back to Browse</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

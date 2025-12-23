@@ -1,0 +1,77 @@
+/* AgroConnect Custom Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.btn {
+    border-radius: 0.375rem;
+}
+
+.form-control, .form-select {
+    border-radius: 0.375rem;
+}
+
+.alert {
+    border-radius: 0.375rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.waste-card {
+    transition: transform 0.2s;
+}
+
+.waste-card:hover {
+    transform: translateY(-2px);
+}
+
+.price-highlight {
+    color: #198754;
+    font-weight: bold;
+}
+
+.status-available {
+    background-color: #198754;
+}
+
+.status-reserved {
+    background-color: #ffc107;
+}
+
+.status-sold {
+    background-color: #6c757d;
+}
+
+.dashboard-stats {
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    color: white;
+}
+
+.footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    background-color: #198754;
+    color: white;
+}

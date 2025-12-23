@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Farmer Dashboard - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Farmer Dashboard</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5>My Waste Products</h5>
+                        <a href="{% url 'waste_add' %}" class="btn btn-success btn-sm">Add New</a>
+                    </div>
+                    <div class="card-body">
+                        {% if waste_products %}
+                            {% for product in waste_products %}
+                                <div class="border-bottom pb-2 mb-2">
+                                    <h6>{{ product.get_crop_name_display }}</h6>
+                                    <p class="mb-1">Quantity: {{ product.quantity }} tons</p>
+                                    <p class="mb-1">Price: ₹{{ product.price_per_ton }}/ton</p>
+                                    <span class="badge bg-{{ product.status|yesno:'success,warning,secondary' }}">{{ product.get_status_display }}</span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No waste products listed yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Orders</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if orders %}
+                            {% for order in orders %}
+                                <div class="border-bottom pb-2 mb-2">
+                                    <h6>{{ order.company.company_name }}</h6>
+                                    <p class="mb-1">Product: {{ order.waste_product.get_crop_name_display }}</p>
+                                    <p class="mb-1">Quantity: {{ order.quantity_ordered }} tons</p>
+                                    <p class="mb-1">Total: ₹{{ order.total_price }}</p>
+                                    <span class="badge bg-{{ order.status|yesno:'success,warning,secondary' }}">{{ order.get_status_display }}</span>
+                                    {% if order.status == 'pending' %}
+                                        <div class="mt-2">
+                                            <a href="{% url 'update_order_status' order.id 'accepted' %}" class="btn btn-success btn-sm">Accept</a>
+                                            <a href="{% url 'update_order_status' order.id 'rejected' %}" class="btn btn-danger btn-sm">Reject</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No orders yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
