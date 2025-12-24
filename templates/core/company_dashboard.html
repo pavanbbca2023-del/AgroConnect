@@ -39,6 +39,38 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-header">
+                <h5>Available Waste Products Summary</h5>
+            </div>
+            <div class="card-body">
+                {% if aggregated_waste %}
+                    <div class="row">
+                        {% for waste in aggregated_waste %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">{{ waste.crop_name|capfirst }} Residue</h6>
+                                    <p class="card-text">
+                                        <strong>{{ waste.total_quantity|floatformat:2 }} tons</strong><br>
+                                        <span class="text-primary">Avg: ₹{{ waste.avg_price|floatformat:2 }}/ton</span>
+                                    </p>
+                                    <a href="{% url 'waste_list' %}?crop_type={{ waste.crop_name }}" class="btn btn-sm btn-outline-primary">View Products</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No waste products available at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
                 <h5>Your Orders</h5>
             </div>
             <div class="card-body">

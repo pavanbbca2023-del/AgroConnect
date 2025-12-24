@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Bargain Requests - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Bargain Requests</h2>
+        
+        {% for bargain in bargains %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between">
+                <h6>{{ bargain.waste_product.get_crop_name_display }} - {{ bargain.waste_product.farmer.user_profile.user.username }}</h6>
+                <span class="badge bg-{{ bargain.status|yesno:'success,warning,danger' }}">{{ bargain.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Current Price:</strong> ₹{{ bargain.waste_product.admin_price_per_ton }}/ton</p>
+                        <p><strong>Farmer's Proposed Price:</strong> ₹{{ bargain.farmer_proposed_price }}/ton</p>
+                        {% if bargain.admin_counter_price %}
+                            <p><strong>Your Counter Price:</strong> ₹{{ bargain.admin_counter_price }}/ton</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Farmer's Message:</strong></p>
+                        <p class="text-muted">{{ bargain.farmer_message }}</p>
+                        {% if bargain.admin_message %}
+                            <p><strong>Your Response:</strong></p>
+                            <p class="text-muted">{{ bargain.admin_message }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if bargain.status == 'pending' %}
+                    <a href="{% url 'respond_bargain' bargain.id %}" class="btn btn-primary btn-sm">Respond</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>No bargain requests yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

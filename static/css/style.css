@@ -75,3 +75,84 @@ body {
     background-color: #198754;
     color: white;
 }
+
+/* Session Management Styles */
+.sessions-header {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.sessions-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-color: #f8f9fa;
+}
+
+.session-item.current-session {
+    background-color: #d1edff;
+    border-color: #0d6efd;
+}
+
+.session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.session-id {
+    font-weight: 600;
+    color: #495057;
+}
+
+.login-time {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.current-badge {
+    background-color: #0d6efd;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.terminate-session {
+    white-space: nowrap;
+}
+
+#session-messages {
+    z-index: 1055;
+}
+
+/* Loading states */
+.session-loading {
+    text-align: center;
+    padding: 20px;
+    color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .session-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .terminate-session {
+        align-self: flex-end;
+    }
+}

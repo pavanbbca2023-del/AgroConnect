@@ -3,11 +3,39 @@
 {% block title %}Farmer Dashboard - AgroConnect{% endblock %}
 
 {% block content %}
+<!-- Market Prices Section -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-header">
+                <h6 class="mb-0">Current Market Prices</h6>
+            </div>
+            <div class="card-body py-2">
+                <div class="row">
+                    {% for price in market_prices %}
+                        {% for choice in crop_choices %}
+                            {% if choice.0 == price.crop_name %}
+                                <div class="col-md-2 col-sm-4 col-6 mb-1">
+                                    <small><strong>{{ choice.1 }}:</strong> ₹{{ price.latest_price }}/ton</small>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% empty %}
+                        <div class="col-12">
+                            <small class="text-muted">No market prices set yet</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-12">
         <h2>Farmer Dashboard</h2>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <h5>My Waste Products</h5>
@@ -19,7 +47,15 @@
                                 <div class="border-bottom pb-2 mb-2">
                                     <h6>{{ product.get_crop_name_display }}</h6>
                                     <p class="mb-1">Quantity: {{ product.quantity }} tons</p>
-                                    <p class="mb-1">Price: ₹{{ product.price_per_ton }}/ton</p>
+                                    <p class="mb-1">Admin Price: ₹{{ product.admin_price_per_ton }}/ton</p>
+                                    {% if product.farmer_price_per_ton %}
+                                        <p class="mb-1"><strong>Your Price: ₹{{ product.farmer_price_per_ton }}/ton</strong></p>
+                                    {% else %}
+                                        <p class="mb-1 text-muted">Your Price: Not set (using admin price)</p>
+                                    {% endif %}
+                                    <div class="mt-2">
+                                        <a href="{% url 'create_bargain' product.id %}" class="btn btn-sm btn-outline-primary">Bargain Price</a>
+                                    </div>
                                     <span class="badge bg-{{ product.status|yesno:'success,warning,secondary' }}">{{ product.get_status_display }}</span>
                                 </div>
                             {% endfor %}
@@ -29,7 +65,30 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bargain Requests</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if bargains %}
+                            {% for bargain in bargains %}
+                                <div class="border-bottom pb-2 mb-2">
+                                    <h6>{{ bargain.waste_product.get_crop_name_display }}</h6>
+                                    <p class="mb-1">Proposed: ₹{{ bargain.farmer_proposed_price }}/ton</p>
+                                    {% if bargain.admin_counter_price %}
+                                        <p class="mb-1">Admin Counter: ₹{{ bargain.admin_counter_price }}/ton</p>
+                                    {% endif %}
+                                    <span class="badge bg-{{ bargain.status|yesno:'success,warning,danger' }}">{{ bargain.get_status_display }}</span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No bargain requests yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h5>Orders</h5>
@@ -42,8 +101,11 @@
                                     <p class="mb-1">Product: {{ order.waste_product.get_crop_name_display }}</p>
                                     <p class="mb-1">Quantity: {{ order.quantity_ordered }} tons</p>
                                     <p class="mb-1">Total: ₹{{ order.total_price }}</p>
-                                    <span class="badge bg-{{ order.status|yesno:'success,warning,secondary' }}">{{ order.get_status_display }}</span>
-                                    {% if order.status == 'pending' %}
+                                    {% if order.admin_notes %}
+                                        <p class="mb-1"><small class="text-muted">Admin: {{ order.admin_notes }}</small></p>
+                                    {% endif %}
+                                    <span class="badge bg-{% if order.status == 'sent_to_farmer' %}warning{% elif order.status == 'accepted_by_farmer' %}success{% elif order.status == 'approved_by_admin' %}info{% else %}secondary{% endif %}">{{ order.get_status_display }}</span>
+                                    {% if order.status == 'sent_to_farmer' %}
                                         <div class="mt-2">
                                             <a href="{% url 'update_order_status' order.id 'accepted' %}" class="btn btn-success btn-sm">Accept</a>
                                             <a href="{% url 'update_order_status' order.id 'rejected' %}" class="btn btn-danger btn-sm">Reject</a>

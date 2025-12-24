@@ -11,7 +11,7 @@
                 <p class="mb-0 text-muted">List your agricultural waste for companies to purchase</p>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <div class="row">
@@ -36,19 +36,20 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.price_per_ton.id_for_label }}" class="form-label">{{ form.price_per_ton.label }}</label>
-                        {{ form.price_per_ton }}
-                        {% if form.price_per_ton.errors %}
-                            <div class="text-danger small">{{ form.price_per_ton.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
                         <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
                         {{ form.location }}
                         <div class="form-text">Specify the location where the waste is available for pickup</div>
                         {% if form.location.errors %}
                             <div class="text-danger small">{{ form.location.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.photo.id_for_label }}" class="form-label">{{ form.photo.label }}</label>
+                        {{ form.photo }}
+                        <div class="form-text">Upload a photo of your waste product (optional)</div>
+                        {% if form.photo.errors %}
+                            <div class="text-danger small">{{ form.photo.errors }}</div>
                         {% endif %}
                     </div>
                     

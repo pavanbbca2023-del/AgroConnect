@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Respond to Bargain - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5>Respond to Bargain Request</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p><strong>Farmer:</strong> {{ bargain.waste_product.farmer.user_profile.user.username }}</p>
+                    <p><strong>Product:</strong> {{ bargain.waste_product.get_crop_name_display }}</p>
+                    <p><strong>Current Price:</strong> ₹{{ bargain.waste_product.admin_price_per_ton }}/ton</p>
+                    <p><strong>Farmer's Proposed Price:</strong> ₹{{ bargain.farmer_proposed_price }}/ton</p>
+                    <p><strong>Farmer's Message:</strong> {{ bargain.farmer_message }}</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Your Response Message</label>
+                        <textarea name="admin_message" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Counter Price (₹/ton) - Optional</label>
+                        <input type="number" name="counter_price" class="form-control" step="0.01" min="0.01">
+                    </div>
+                    
+                    <div class="btn-group" role="group">
+                        <button type="submit" name="action" value="accept" class="btn btn-success">Accept Farmer's Price</button>
+                        <button type="submit" name="action" value="counter" class="btn btn-warning">Send Counter Offer</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+                    </div>
+                    <a href="{% url 'admin_bargains' %}" class="btn btn-secondary ms-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

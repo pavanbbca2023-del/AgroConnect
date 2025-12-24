@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import WasteProduct, Order
+from .models import WasteProduct, Order, UserProfile
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
@@ -84,28 +84,35 @@ class UserRegistrationForm(UserCreationForm):
 class WasteProductForm(forms.ModelForm):
     class Meta:
         model = WasteProduct
-        fields = ['crop_name', 'quantity', 'price_per_ton', 'location', 'description']
+        fields = ['crop_name', 'quantity', 'farmer_price_per_ton', 'location', 'description', 'photo']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01', 'class': 'form-control'}),
-            'price_per_ton': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01', 'class': 'form-control'}),
+            'farmer_price_per_ton': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01', 'class': 'form-control'}),
             'crop_name': forms.Select(attrs={'class': 'form-select'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
         labels = {
             'crop_name': 'Crop Type',
             'quantity': 'Quantity (tons)',
-            'price_per_ton': 'Price per Ton (₹)',
+            'farmer_price_per_ton': 'Your Price per Ton (₹) - Optional',
             'location': 'Location',
             'description': 'Description',
+            'photo': 'Product Photo',
         }
 
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['quantity_ordered', 'notes']
+        fields = ['quantity_ordered', 'company_price_per_ton', 'notes']
         widgets = {
             'quantity_ordered': forms.NumberInput(attrs={
+                'step': '0.01', 
+                'min': '0.01', 
+                'class': 'form-control'
+            }),
+            'company_price_per_ton': forms.NumberInput(attrs={
                 'step': '0.01', 
                 'min': '0.01', 
                 'class': 'form-control'
@@ -118,6 +125,7 @@ class OrderForm(forms.ModelForm):
         }
         labels = {
             'quantity_ordered': 'Quantity (tons)',
+            'company_price_per_ton': 'Your Offer Price per Ton (₹)',
             'notes': 'Additional Notes (Optional)',
         }
     
@@ -132,3 +140,44 @@ class OrderForm(forms.ModelForm):
         if self.waste_product and quantity > self.waste_product.quantity:
             raise ValidationError(f"Quantity cannot exceed available stock ({self.waste_product.quantity} tons)")
         return quantity
+
+class ProfileUpdateForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    
+    # Farmer specific field
+    farm_size = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        required=False,
+        min_value=0.01,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
+    )
+    
+    # Company specific field
+    company_name = forms.CharField(max_length=200, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    
+    class Meta:
+        model = UserProfile
+        fields = ['phone', 'address', 'profile_photo']
+        widgets = {
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'profile_photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.instance and self.instance.role == 'farmer':
+            self.fields['farm_size'].required = True
+        elif self.instance and self.instance.role == 'company':
+            self.fields['company_name'].required = True
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if self.user and User.objects.filter(email=email).exclude(id=self.user.id).exists():
+            raise ValidationError("Email already exists")
+        return email

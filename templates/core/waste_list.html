@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load math_filters %}
 
 {% block title %}Browse Waste Products - AgroConnect{% endblock %}
 
@@ -6,7 +7,12 @@
 <div class="row">
     <div class="col-md-12">
         <h2>Available Waste Products</h2>
-        <p class="text-muted">Browse agricultural waste products available for purchase</p>
+        {% if selected_crop %}
+            <p class="text-muted">Showing {{ selected_crop|capfirst }} Residue products</p>
+            <a href="{% url 'waste_list' %}" class="btn btn-outline-secondary mb-3">← Back to Summary</a>
+        {% else %}
+            <p class="text-muted">Browse agricultural waste products available for purchase</p>
+        {% endif %}
     </div>
 </div>
 
@@ -16,7 +22,6 @@
             <select name="crop_type" class="form-select me-2">
                 <option value="">All Crop Types</option>
                 <option value="rice" {% if request.GET.crop_type == 'rice' %}selected{% endif %}>Rice Residue</option>
-                <option value="corn" {% if request.GET.crop_type == 'corn' %}selected{% endif %}>Corn Residue</option>
                 <option value="wheat" {% if request.GET.crop_type == 'wheat' %}selected{% endif %}>Wheat Residue</option>
                 <option value="sugarcane" {% if request.GET.crop_type == 'sugarcane' %}selected{% endif %}>Sugarcane Residue</option>
                 <option value="cotton" {% if request.GET.crop_type == 'cotton' %}selected{% endif %}>Cotton Residue</option>
@@ -29,42 +34,84 @@
 
 <div class="row">
     {% if waste_products %}
-        {% for product in waste_products %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h6 class="mb-0">{{ product.get_crop_name_display }}</h6>
-                    <small class="text-muted">by {{ product.farmer.user_profile.user.get_full_name|default:product.farmer.user_profile.user.username }}</small>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">{{ product.description|truncatewords:20 }}</p>
-                    <div class="row">
-                        <div class="col-6">
-                            <strong>Quantity:</strong><br>
-                            <span class="text-success">{{ product.quantity }} tons</span>
+        {% if is_aggregated %}
+            <!-- Aggregated view -->
+            {% for product in waste_products %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0">{{ product.crop_name|capfirst }} Residue</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Total Quantity:</strong><br>
+                                <span class="text-success">{{ product.total_quantity|floatformat:2 }} tons</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Avg Price:</strong><br>
+                                <span class="text-primary">₹{{ product.avg_price|floatformat:2 }}/ton</span>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <strong>Price:</strong><br>
-                            <span class="text-primary">₹{{ product.price_per_ton }}/ton</span>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>Est. Total Value: ₹{{ product.total_quantity|mul:product.avg_price|floatformat:0 }}</strong>
+                            <span class="badge bg-success">Available</span>
                         </div>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <strong>Total Value: ₹{{ product.total_value }}</strong>
-                        <span class="badge bg-success">{{ product.get_status_display }}</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'waste_detail' product.pk %}" class="btn btn-outline-primary btn-sm">View Details</a>
-                        {% if user.is_authenticated and user.userprofile.role == 'company' %}
-                            <a href="{% url 'place_order' product.id %}" class="btn btn-success btn-sm">Place Order</a>
-                        {% endif %}
+                    <div class="card-footer">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'waste_list' %}?crop_type={{ product.crop_name }}" class="btn btn-outline-primary btn-sm">View Details</a>
+                            {% if user.is_authenticated and user.userprofile.role == 'company' %}
+                                <a href="{% url 'waste_list' %}?crop_type={{ product.crop_name }}" class="btn btn-success btn-sm">Browse Products</a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <!-- Individual products view -->
+            {% for product in waste_products %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    {% if product.photo %}
+                    <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.get_crop_name_display }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-header">
+                        <h6 class="mb-0">{{ product.get_crop_name_display }}</h6>
+                        <small class="text-muted">Location: {{ product.location }}</small>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ product.description|truncatewords:20 }}</p>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Quantity:</strong><br>
+                                <span class="text-success">{{ product.quantity }} tons</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Price:</strong><br>
+                                <span class="text-primary">₹{{ product.admin_price_per_ton }}/ton</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>Total Value: ₹{{ product.total_value }}</strong>
+                            <span class="badge bg-success">{{ product.get_status_display }}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'waste_detail' product.pk %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                            {% if user.is_authenticated and user.userprofile.role == 'company' %}
+                                <a href="{% url 'place_order' product.id %}" class="btn btn-success btn-sm">Place Order</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
     {% else %}
         <div class="col-12">
             <div class="alert alert-info text-center">

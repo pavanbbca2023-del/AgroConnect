@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}View All Waste Prices - Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>All Waste Prices</h2>
+        <p class="text-muted">View all waste products and their pricing information</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="crop" class="form-label">Filter by Crop Type</label>
+                <select name="crop" id="crop" class="form-select">
+                    <option value="">All Crops</option>
+                    {% for value, label in crop_choices %}
+                    <option value="{{ value }}" {% if current_crop == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="status" class="form-label">Filter by Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Filter</button>
+                <a href="{% url 'admin_view_prices' %}" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5>Total Products</h5>
+                <h3>{{ waste_products.count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Available</h5>
+                <h3>{{ waste_products|length|add:0 }}{% for w in waste_products %}{% if w.status == 'available' %}{% if forloop.first %}{{ forloop.counter0|add:1 }}{% else %}{{ forloop.counter }}{% endif %}{% endif %}{% endfor %}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5>Total Quantity</h5>
+                <h3>{% for w in waste_products %}{% if forloop.first %}{{ w.quantity }}{% else %}{{ w.quantity|add:0 }}{% endif %}{% endfor %} tons</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Total Value</h5>
+                <h3 id="totalValue">₹0</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Waste Products Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Waste Products</h5>
+        <div>
+            <a href="{% url 'admin_set_prices' %}" class="btn btn-warning btn-sm">Set Prices</a>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">Back to Dashboard</a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if waste_products %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Crop Type</th>
+                        <th>Farmer</th>
+                        <th>Location</th>
+                        <th>Quantity (tons)</th>
+                        <th>Price (₹/ton)</th>
+                        <th>Total Value</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for waste in waste_products %}
+                    <tr>
+                        <td>#{{ waste.id }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ waste.get_crop_name_display }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ waste.farmer.user_profile.user.get_full_name|default:waste.farmer.user_profile.user.username }}</strong><br>
+                            <small class="text-muted">{{ waste.farmer.user_profile.phone }}</small>
+                        </td>
+                        <td>{{ waste.location }}</td>
+                        <td>{{ waste.quantity }}</td>
+                        <td>₹{{ waste.admin_price_per_ton }}</td>
+                        <td class="total-value" data-value="{{ waste.total_value }}">
+                            <strong>₹{{ waste.total_value }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if waste.status == 'available' %}success{% elif waste.status == 'reserved' %}warning{% else %}secondary{% endif %}">
+                                {{ waste.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ waste.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'waste_detail' waste.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No waste products found</h5>
+            <p class="text-muted">Try adjusting your filters or check back later.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calculate total value
+    let totalValue = 0;
+    document.querySelectorAll('.total-value').forEach(cell => {
+        totalValue += parseFloat(cell.dataset.value) || 0;
+    });
+    document.getElementById('totalValue').textContent = '₹' + totalValue.toFixed(2);
+    
+    // Update summary cards with correct counts
+    const availableCount = document.querySelectorAll('tbody tr').length;
+    const availableProducts = Array.from(document.querySelectorAll('tbody tr')).filter(row => 
+        row.querySelector('.badge').textContent.trim().toLowerCase().includes('available')
+    ).length;
+    
+    let totalQuantity = 0;
+    document.querySelectorAll('tbody tr').forEach(row => {
+        const quantityCell = row.cells[4]; // Quantity column
+        totalQuantity += parseFloat(quantityCell.textContent) || 0;
+    });
+    
+    // Update the cards (this is a simple approach, in production you'd do this server-side)
+    const cards = document.querySelectorAll('.card h3');
+    if (cards.length >= 3) {
+        cards[2].textContent = totalQuantity.toFixed(1) + ' tons';
+    }
+});
+</script>
+{% endblock %}

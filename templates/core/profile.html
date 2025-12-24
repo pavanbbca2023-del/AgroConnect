@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">User Profile</h4>
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="mb-3">
+                            {% if user_profile.profile_photo %}
+                                <img src="{{ user_profile.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; margin: 0 auto;">
+                                    <i class="text-white" style="font-size: 60px;">👤</i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Personal Information</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Username:</strong></td>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Full Name:</strong></td>
+                                <td>{{ user.get_full_name|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ user.email|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>{{ user_profile.phone }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Role:</strong></td>
+                                <td><span class="badge bg-info">{{ user_profile.get_role_display }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Member Since:</strong></td>
+                                <td>{{ user_profile.created_at|date:"F d, Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-5">
+                        <h6 class="text-muted">Contact Information</h6>
+                        <p><strong>Address:</strong></p>
+                        <p class="text-muted">{{ user_profile.address }}</p>
+                        
+                        {% if farmer_profile %}
+                        <h6 class="text-muted mt-4">Farm Information</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Farm Size:</strong></td>
+                                <td>{{ farmer_profile.farm_size }} acres</td>
+                            </tr>
+                        </table>
+                        {% elif company_profile %}
+                        <h6 class="text-muted mt-4">Company Information</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Company Name:</strong></td>
+                                <td>{{ company_profile.company_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Registration Number:</strong></td>
+                                <td>{{ company_profile.registration_number }}</td>
+                            </tr>
+                        </table>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

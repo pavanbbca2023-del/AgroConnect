@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Management - AgroConnect{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Order Management</h2>
+            <div class="btn-group" role="group">
+                <a href="?status=pending_admin" class="btn btn-outline-warning btn-sm">Pending Review</a>
+                <a href="?status=approved_by_admin" class="btn btn-outline-info btn-sm">Approved</a>
+                <a href="?status=accepted" class="btn btn-outline-success btn-sm">Accepted</a>
+                <a href="?" class="btn btn-outline-secondary btn-sm">All Orders</a>
+            </div>
+        </div>
+        
+        {% for order in orders %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between">
+                <h6>Order #{{ order.id }} - {{ order.company.company_name }}</h6>
+                <span class="badge bg-{% if order.status == 'pending_admin' %}warning{% elif order.status == 'approved_by_admin' %}info{% elif order.status == 'accepted' %}success{% else %}danger{% endif %}">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Product:</strong> {{ order.waste_product.get_crop_name_display }}</p>
+                        <p><strong>Farmer:</strong> {{ order.waste_product.farmer.user_profile.user.username }}</p>
+                        <p><strong>Quantity:</strong> {{ order.quantity_ordered }} tons</p>
+                        <p><strong>Company Price:</strong> ₹{{ order.company_price_per_ton }}/ton</p>
+                        <p><strong>Total Amount:</strong> ₹{{ order.total_price }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if order.notes %}
+                            <p><strong>Company Notes:</strong></p>
+                            <p class="text-muted">{{ order.notes }}</p>
+                        {% endif %}
+                        {% if order.admin_notes %}
+                            <p><strong>Admin Notes:</strong></p>
+                            <p class="text-muted">{{ order.admin_notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-2">
+                    {% if order.status == 'pending_admin' %}
+                        <a href="{% url 'admin_approve_order' order.id %}" class="btn btn-primary btn-sm">Review Order</a>
+                    {% elif order.status == 'approved_by_admin' %}
+                        <span class="text-info">Waiting for farmer response</span>
+                    {% elif order.status == 'accepted' %}
+                        <button class="btn btn-success btn-sm" onclick="markCompleted({{ order.id }})">Mark as Completed</button>
+                    {% endif %}
+                    <small class="text-muted ms-2">Created: {{ order.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No orders yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+<script>
+function markCompleted(orderId) {
+    if (confirm('Mark this order as completed?')) {
+        fetch(`/admin/orders/${orderId}/complete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+</script>

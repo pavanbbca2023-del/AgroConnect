@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Summary - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Order Management Summary</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">{{ pending_count }}</h5>
+                <p class="card-text">Pending Review</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">{{ approved_count }}</h5>
+                <p class="card-text">Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">{{ accepted_count }}</h5>
+                <p class="card-text">Accepted</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ completed_count }}</h5>
+                <p class="card-text">Completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6>Recent Orders Requiring Action</h6>
+            </div>
+            <div class="card-body">
+                {% for order in pending_orders %}
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                    <div>
+                        <strong>Order #{{ order.id }}</strong><br>
+                        <small>{{ order.company.company_name }} - {{ order.waste_product.get_crop_name_display }}</small>
+                    </div>
+                    <a href="{% url 'admin_approve_order' order.id %}" class="btn btn-sm btn-primary">Review</a>
+                </div>
+                {% empty %}
+                <p class="text-muted">No pending orders</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6>Order Value Summary</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Order Value:</strong> ₹{{ total_value|floatformat:2 }}</p>
+                <p><strong>Completed Value:</strong> ₹{{ completed_value|floatformat:2 }}</p>
+                <p><strong>Pending Value:</strong> ₹{{ pending_value|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

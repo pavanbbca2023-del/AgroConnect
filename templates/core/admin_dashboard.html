@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Admin Dashboard</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Total Users</h5>
+                <h3>{{ stats.total_users }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Farmers</h5>
+                <h3>{{ stats.total_farmers }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5>Companies</h5>
+                <h3>{{ stats.total_companies }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5>Total Orders</h5>
+                <h3>{{ stats.total_orders }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Orders</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.company.company_name }}</td>
+                                <td><span class="badge bg-{{ order.status|yesno:'success,warning,danger' }}">{{ order.get_status_display }}</span></td>
+                                <td>₹{{ order.total_price }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4">No orders yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Waste Products</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Crop</th>
+                                <th>Farmer</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for waste in recent_waste %}
+                            <tr>
+                                <td>{{ waste.get_crop_name_display }}</td>
+                                <td>{{ waste.farmer.user_profile.user.username }}</td>
+                                <td>{{ waste.quantity }} tons</td>
+                                <td><span class="badge bg-{{ waste.status|yesno:'success,secondary,warning' }}">{{ waste.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4">No waste products yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Price Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-list-alt fa-2x text-info mb-2"></i>
+                                <h6>View All Prices</h6>
+                                <p class="text-muted small">View all waste products and their pricing information</p>
+                                <a href="{% url 'admin_view_prices' %}" class="btn btn-info">View Prices</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-handshake fa-2x text-warning mb-2"></i>
+                                <h6>Bargain Requests</h6>
+                                <p class="text-muted small">Review farmer price bargain requests</p>
+                                <a href="{% url 'admin_bargains' %}" class="btn btn-warning">View Bargains</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shopping-cart fa-2x text-primary mb-2"></i>
+                                <h6>Order Management</h6>
+                                <p class="text-muted small">Review and approve company orders</p>
+                                <a href="{% url 'admin_orders' %}" class="btn btn-primary">Manage Orders</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-2x text-success mb-2"></i>
+                                <h6>Order Summary</h6>
+                                <p class="text-muted small">View order statistics and summary</p>
+                                <a href="{% url 'order_summary' %}" class="btn btn-success">View Summary</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="/admin/" class="btn btn-primary me-2">Django Admin</a>
+                <a href="{% url 'waste_list' %}" class="btn btn-success me-2">View All Waste</a>
+                <button class="btn btn-warning" onclick="location.reload()">Refresh Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

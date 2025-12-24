@@ -19,6 +19,7 @@ class UserProfile(models.Model):
         )]
     )
     address = models.TextField()
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -63,7 +64,6 @@ class CompanyProfile(models.Model):
 class WasteProduct(models.Model):
     CROP_CHOICES = [
         ('rice', 'Rice Residue'),
-        ('corn', 'Corn Residue'),
         ('wheat', 'Wheat Residue'),
         ('sugarcane', 'Sugarcane Residue'),
         ('cotton', 'Cotton Residue'),
@@ -83,13 +83,23 @@ class WasteProduct(models.Model):
         validators=[MinValueValidator(0.01)],
         help_text="Quantity in tons"
     )
-    price_per_ton = models.DecimalField(
+    admin_price_per_ton = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        validators=[MinValueValidator(0.01)]
+        validators=[MinValueValidator(0.01)],
+        help_text="Price set by admin for farmers"
+    )
+    farmer_price_per_ton = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        help_text="Price set by farmer (can bargain from admin price)",
+        null=True,
+        blank=True
     )
     location = models.CharField(max_length=200, help_text="Location where waste is available")
     description = models.TextField()
+    photo = models.ImageField(upload_to='waste_photos/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='available')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -104,14 +114,20 @@ class WasteProduct(models.Model):
         return reverse('waste_detail', kwargs={'pk': self.pk})
     
     @property
+    def effective_price(self):
+        return self.farmer_price_per_ton or self.admin_price_per_ton
+    
+    @property
     def total_value(self):
-        return self.quantity * self.price_per_ton
+        return self.quantity * self.effective_price
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
+        ('pending_admin', 'Pending Admin Review'),
+        ('sent_to_farmer', 'Sent to Farmer'),
+        ('accepted_by_farmer', 'Accepted by Farmer'),
+        ('rejected_by_farmer', 'Rejected by Farmer'),
+        ('approved_by_admin', 'Final Admin Approval'),
         ('completed', 'Completed'),
     ]
     
@@ -122,9 +138,16 @@ class Order(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0.01)]
     )
+    company_price_per_ton = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        help_text="Price offered by company"
+    )
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_admin')
     notes = models.TextField(blank=True, help_text="Additional notes from company")
+    admin_notes = models.TextField(blank=True, help_text="Admin's notes")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -138,5 +161,39 @@ class Order(models.Model):
         from django.db import transaction
         with transaction.atomic():
             if not self.total_price:
-                self.total_price = self.quantity_ordered * self.waste_product.price_per_ton
+                self.total_price = self.quantity_ordered * self.company_price_per_ton
             super().save(*args, **kwargs)
+
+class PriceBargain(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    waste_product = models.ForeignKey(WasteProduct, on_delete=models.CASCADE, related_name='bargains')
+    farmer_proposed_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        help_text="Price proposed by farmer"
+    )
+    admin_counter_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        help_text="Counter price by admin",
+        null=True,
+        blank=True
+    )
+    farmer_message = models.TextField(help_text="Farmer's bargaining message")
+    admin_message = models.TextField(blank=True, help_text="Admin's response message")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Bargain #{self.id} - {self.waste_product.crop_name} - {self.get_status_display()}"

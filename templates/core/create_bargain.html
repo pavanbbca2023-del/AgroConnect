@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Bargain - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5>Bargain for {{ waste_product.get_crop_name_display }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p><strong>Current Admin Price:</strong> ₹{{ waste_product.admin_price_per_ton }}/ton</p>
+                    <p><strong>Quantity:</strong> {{ waste_product.quantity }} tons</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Your Proposed Price (₹/ton)</label>
+                        <input type="number" name="proposed_price" class="form-control" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message to Admin</label>
+                        <textarea name="message" class="form-control" rows="4" placeholder="Explain why you want this price..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Bargain Request</button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

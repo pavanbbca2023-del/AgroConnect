@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Approve Order - AgroConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5>Review Order #{{ order.id }}</h5>
+                <small class="text-muted">Submitted on {{ order.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Company Details</h6>
+                        <p><strong>Company:</strong> {{ order.company.company_name }}</p>
+                        <p><strong>Registration:</strong> {{ order.company.registration_number }}</p>
+                        <p><strong>Contact:</strong> {{ order.company.user_profile.user.email }}</p>
+                        <p><strong>Phone:</strong> {{ order.company.user_profile.phone }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Farmer Details</h6>
+                        <p><strong>Farmer:</strong> {{ order.waste_product.farmer.user_profile.user.get_full_name|default:order.waste_product.farmer.user_profile.user.username }}</p>
+                        <p><strong>Contact:</strong> {{ order.waste_product.farmer.user_profile.user.email }}</p>
+                        <p><strong>Phone:</strong> {{ order.waste_product.farmer.user_profile.phone }}</p>
+                        <p><strong>Farm Size:</strong> {{ order.waste_product.farmer.farm_size }} acres</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h6>Order Details</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>Product</strong></td>
+                                    <td>{{ order.waste_product.get_crop_name_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Available Quantity</strong></td>
+                                    <td>{{ order.waste_product.quantity }} tons</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Requested Quantity</strong></td>
+                                    <td>{{ order.quantity_ordered }} tons</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Admin Set Price</strong></td>
+                                    <td>₹{{ order.waste_product.admin_price_per_ton }}/ton</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Company Offered Price</strong></td>
+                                    <td>₹{{ order.company_price_per_ton }}/ton</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Amount</strong></td>
+                                    <td><strong>₹{{ order.total_price }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Location</strong></td>
+                                    <td>{{ order.waste_product.location }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if order.notes %}
+                <div class="mb-3">
+                    <h6>Company Notes</h6>
+                    <div class="alert alert-info">{{ order.notes }}</div>
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Admin Decision Notes</strong></label>
+                        <textarea name="admin_notes" class="form-control" rows="4" placeholder="Add your review notes and decision reasoning..."></textarea>
+                        <small class="form-text text-muted">These notes will be visible to both company and farmer.</small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div class="btn-group" role="group">
+                            {% if order.status == 'pending_admin' %}
+                                <button type="submit" name="action" value="send_to_farmer" class="btn btn-success btn-lg">
+                                    <i class="fas fa-paper-plane"></i> Send to Farmer
+                                </button>
+                            {% elif order.status == 'accepted_by_farmer' %}
+                                <button type="submit" name="action" value="final_approve" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check"></i> Final Approval
+                                </button>
+                            {% endif %}
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg">
+                                <i class="fas fa-times"></i> Reject Order
+                            </button>
+                        </div>
+                        <a href="{% url 'admin_orders' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
