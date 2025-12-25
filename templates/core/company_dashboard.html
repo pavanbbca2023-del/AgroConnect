@@ -3,112 +3,200 @@
 {% block title %}Company Dashboard - AgroConnect{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h2>Company Dashboard</h2>
-        <p class="text-muted">Welcome, {{ user.userprofile.companyprofile.company_name }}!</p>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>Quick Actions</h5>
+<!-- Welcome Header -->
+<div class="bg-primary text-white py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-1"><i class="fas fa-building me-2"></i>Company Dashboard</h2>
+                <p class="mb-0">Welcome, {{ user.userprofile.companyprofile.company_name }}!</p>
             </div>
-            <div class="card-body">
-                <a href="{% url 'waste_list' %}" class="btn btn-primary mb-2">Browse Available Waste</a>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>Order Statistics</h5>
-            </div>
-            <div class="card-body">
-                <p>Total Orders: {{ orders.count }}</p>
-                <p>Pending: {{ orders|length }}</p>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'waste_list' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-search me-2"></i>Browse Products
+                </a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Available Waste Products Summary</h5>
+<!-- Statistics Cards -->
+<div class="container mb-4">
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="mb-0">{{ orders|length }}</h4>
+                    <small>Total Orders</small>
+                </div>
             </div>
-            <div class="card-body">
-                {% if aggregated_waste %}
-                    <div class="row">
-                        {% for waste in aggregated_waste %}
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card border-primary">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">{{ waste.crop_name|capfirst }} Residue</h6>
-                                    <p class="card-text">
-                                        <strong>{{ waste.total_quantity|floatformat:2 }} tons</strong><br>
-                                        <span class="text-primary">Avg: ₹{{ waste.avg_price|floatformat:2 }}/ton</span>
-                                    </p>
-                                    <a href="{% url 'waste_list' %}?crop_type={{ waste.crop_name }}" class="btn btn-sm btn-outline-primary">View Products</a>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="mb-0">{{ orders|length }}</h4>
+                    <small>Pending Orders</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-seedling mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="mb-0">{{ aggregated_waste|length }}</h4>
+                    <small>Product Types</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-secondary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line mb-2" style="font-size: 2rem;"></i>
+                    <h4 class="mb-0">Active</h4>
+                    <small>Status</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Waste Products -->
+<div class="container mb-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Available Waste Products</h5>
+                <a href="{% url 'waste_list' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-external-link-alt me-1"></i>View All
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if aggregated_waste %}
+                <div class="row g-3">
+                    {% for waste in aggregated_waste %}
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if waste.crop_name == 'rice' %}
+                                        <i class="fas fa-wheat-awn text-warning" style="font-size: 2.5rem;"></i>
+                                    {% elif waste.crop_name == 'wheat' %}
+                                        <i class="fas fa-seedling text-success" style="font-size: 2.5rem;"></i>
+                                    {% elif waste.crop_name == 'sugarcane' %}
+                                        <i class="fas fa-leaf text-primary" style="font-size: 2.5rem;"></i>
+                                    {% elif waste.crop_name == 'cotton' %}
+                                        <i class="fas fa-cotton-bureau text-info" style="font-size: 2.5rem;"></i>
+                                    {% else %}
+                                        <i class="fas fa-seedling text-secondary" style="font-size: 2.5rem;"></i>
+                                    {% endif %}
                                 </div>
+                                <h6 class="card-title">{{ waste.crop_name|capfirst }} Residue</h6>
+                                <div class="mb-3">
+                                    <div class="row">
+                                        <div class="col-12 mb-2">
+                                            <strong class="text-success">{{ waste.total_quantity|floatformat:2 }} tons</strong>
+                                            <br><small class="text-muted">Available</small>
+                                        </div>
+                                        <div class="col-12">
+                                            <strong class="text-primary">₹{{ waste.avg_price|floatformat:2 }}/ton</strong>
+                                            <br><small class="text-muted">Avg Price</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{% url 'waste_list' %}?crop_type={{ waste.crop_name }}" class="btn btn-primary btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>View Products
+                                </a>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                {% else %}
-                    <p class="text-muted">No waste products available at the moment.</p>
-                {% endif %}
-            </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-boxes text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">No waste products available</h5>
+                    <p class="text-muted">Check back later for new products from farmers.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5>Your Orders</h5>
-            </div>
-            <div class="card-body">
-                {% if orders %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                    <th>Total Price</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for order in orders %}
-                                <tr>
-                                    <td>#{{ order.id }}</td>
-                                    <td>{{ order.waste_product.get_crop_name_display }}</td>
-                                    <td>{{ order.quantity_ordered }} tons</td>
-                                    <td>₹{{ order.total_price }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'accepted' %}success{% elif order.status == 'rejected' %}danger{% else %}info{% endif %}">
-                                            {{ order.get_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted">No orders placed yet. <a href="{% url 'waste_list' %}">Browse available waste products</a> to get started.</p>
-                {% endif %}
-            </div>
+<!-- Your Orders -->
+<div class="container">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i>Your Orders</h5>
+        </div>
+        <div class="card-body">
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-hashtag me-1"></i>Order ID</th>
+                                <th><i class="fas fa-seedling me-1"></i>Product</th>
+                                <th><i class="fas fa-weight-hanging me-1"></i>Quantity</th>
+                                <th><i class="fas fa-rupee-sign me-1"></i>Total Price</th>
+                                <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                                <th><i class="fas fa-calendar me-1"></i>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-box text-muted me-2"></i>
+                                        <div>
+                                            <div>{{ order.waste_product.get_crop_name_display }}</div>
+                                            <small class="text-muted">{{ order.waste_product.location|truncatechars:20 }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ order.quantity_ordered }} tons</td>
+                                <td><strong class="text-success">₹{{ order.total_price }}</strong></td>
+                                <td>
+                                    {% if order.status == 'pending_admin' %}
+                                        <span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Pending Review</span>
+                                    {% elif order.status == 'sent_to_farmer' %}
+                                        <span class="badge bg-info"><i class="fas fa-paper-plane me-1"></i>Sent to Farmer</span>
+                                    {% elif order.status == 'accepted_by_farmer' %}
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Accepted</span>
+                                    {% elif order.status == 'rejected_by_farmer' %}
+                                        <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Rejected</span>
+                                    {% elif order.status == 'approved_by_admin' %}
+                                        <span class="badge bg-primary"><i class="fas fa-thumbs-up me-1"></i>Approved</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'waste_detail' order.waste_product.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted mt-3">No orders placed yet</h5>
+                    <p class="text-muted mb-4">Start by browsing available waste products and placing your first order.</p>
+                    <a href="{% url 'waste_list' %}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Browse Products
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
